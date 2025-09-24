@@ -13,6 +13,8 @@ const Navbar = () => {
             <a href="#hero" className="logo">CXR-Vision<span>AI</span></a>
             <ul className="nav-links">
                 <li><a href="#upload">Analyzer</a></li>
+                {/* ✨ ADD THIS LINE */}
+                <li><a href="#history">History</a></li>
                 <li><a href="#footer">About</a></li>
             </ul>
         </nav>

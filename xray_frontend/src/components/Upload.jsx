@@ -1,6 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import HorizontalBarChart from './HorizontalBarChart';
+import { saveAnalysis } from '../utils/history'; // Import the save function
+
+// Helper function to convert a File to a Base64 string for the thumbnail
+const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+});
 
 const Upload = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -34,8 +43,23 @@ const Upload = () => {
             if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
             const data = await response.json();
             if (data.error) throw new Error(data.error);
+
             setPredictions(data.predictions);
             setHeatmaps(data.heatmaps || []);
+
+            // --- ✨ SAVE TO HISTORY ---
+            const thumbnail = await fileToBase64(file);
+            const topFindings = data.predictions.filter(p => p.confidence > 50);
+            const newHistoryItem = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                thumbnail: thumbnail,
+                topFindings: topFindings,
+                fullPredictions: data.predictions,
+            };
+            saveAnalysis(newHistoryItem);
+            // --- END OF SAVE ---
+
         } catch (err) {
             setError(`Analysis failed: ${err.message}. Ensure the Python server is running.`);
         } finally {
